@@ -21,8 +21,12 @@ import java.util.UUID;
 @Service
 public class TaskService {
 
-    @Autowired
     TaskUtils taskUtils;
+
+    @Autowired
+    public TaskService(TaskUtils taskUtils) {
+        this.taskUtils = taskUtils;
+    }
 
     public String createTask(String type) {
         String task_id = UUID.randomUUID().toString();
@@ -54,12 +58,21 @@ public class TaskService {
 
 
     public Response input(String task_id, JSONObject param) {
-        taskUtils.setInputParams(task_id, param);
-        taskUtils.setStatusDoing(task_id);
-        String msg = taskUtils.getMsg(task_id);
-        String nextStep = taskUtils.getNextStep(task_id);
-        String type = taskUtils.getType(task_id);
-        taskUtils.pushMQ(new MSGInfo(type, task_id, nextStep));
+        String msg;
+        String status = taskUtils.getStatus(task_id);
+        if (status != null && status.equals(StatusEnum.INPUT.toString())) {
+            taskUtils.setMsg(task_id, null);
+            taskUtils.setInputParams(task_id, param);
+            taskUtils.setStatusDoing(task_id);
+            msg = taskUtils.getMsg(task_id);
+            String nextStep = taskUtils.getNextStep(task_id);
+            String type = taskUtils.getType(task_id);
+            taskUtils.pushMQ(new MSGInfo(type, task_id, nextStep));
+        } else {
+            msg = "当前非输入状态，不可进行信息输入！";
+        }
+
+
         Response response = new Response(task_id, StatusEnum.SUCCESS, msg);
         return response;
     }

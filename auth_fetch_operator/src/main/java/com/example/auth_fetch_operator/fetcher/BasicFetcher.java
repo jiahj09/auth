@@ -1,12 +1,8 @@
 package com.example.auth_fetch_operator.fetcher;
 
-import com.example.auth_comm.constant.ParamEnum;
-import com.example.auth_comm.constant.StepEnum;
 import com.example.auth_comm.utils.TaskUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
 
 /**
  * 功能：
@@ -19,7 +15,7 @@ import java.util.ArrayList;
 public class BasicFetcher {
 
     @Autowired
-    TaskUtils taskUtils;
+    public TaskUtils taskUtils;
 
     public void init(String task_id) {
 

@@ -97,6 +97,7 @@ public class TaskUtils {
 
     public void setStatusDone(String task_id, String msg) {
         redisTemplate.opsForHash().put(task_id, msg_key, msg);
+        redisTemplate.opsForHash().delete(task_id, input_fields_key);
         redisTemplate.opsForHash().put(task_id, status_key, StatusEnum.DONE.toString());
     }
 
@@ -142,6 +143,14 @@ public class TaskUtils {
         Object o = redisTemplate.opsForHash().get(task_id, msg_key);
         if (o == null) return null;
         return o.toString();
+    }
+
+    public void setMsg(String task_id, String msg) {
+        if (msg == null || msg.trim().equals("")) {
+            redisTemplate.opsForHash().delete(task_id, msg_key);
+        } else {
+            redisTemplate.opsForHash().put(task_id, msg_key, msg);
+        }
     }
 
     public Object getNeedInputField(String task_id) {
