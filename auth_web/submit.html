@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>测试布局</title>
+    <script src="./js/jquery-3.4.1.min.js"></script>
+    <script src=" ./js/config.js"></script>
+
+    <!--loading style-->
+    <style>
+        .loading {
+            width: 100px;
+            height: 100px;
+            /*border: 1px solid red;*/
+            position: relative;
+        }
+
+        .loading::before, .loading::after {
+            content: '任务正在执行，请等待···';
+            /*这里要加一个content,不然什么都没有*/
+            position: absolute;
+            width: 0;
+            height: 0;
+            background: #000;
+            border-radius: 50%;
+
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            margin: auto;
+            animation: toBig 1s linear infinite;
+        }
+
+        .loading::after {
+            animation-delay: 0.5s;
+            /*background-color: red;*/
+        }
+
+        @keyframes toBig {
+            0% {
+                width: 0;
+                height: 0;
+                opacity: 1;
+            }
+            100% {
+                width: 50px;
+                height: 50px;
+                opacity: 0;
+            }
+        }
+    </style>
+    <style>
+        .site-welcome {
+            display: none;
+            justify-content: center;
+            align-items: center;
+
+            /*里面内容居中使用flex在父元素添加三行代码display:flex;justify-content:center;
+            align-items:center;*/
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /*上面四行代码,让这个fixed铺满整个画面*/
+            background-color: #ccc;
+            z-index: 1;
+        }
+
+        .site-welcome.active {
+            display: flex;
+        }
+    </style>
+</head>
+<style type="text/css">
+    body {
+        background-color: darkgray;
+    }
+
+    table {
+        margin: auto
+    }
+</style>
+<body>
+<div class="site-welcome active" id="siteWelcome">
+    <div class="loading">
+
+    </div>
+</div>
+<h1 style="text-align: center">授权交互体验中心</h1>
+<div class="input">
+    <table>
+        <!--        <tr>
+                    <td align="center" colspan="2">
+                        <button id="submit" style="margin: auto" onclick="submit_info()">提交</button>
+                    </td>
+                </tr>-->
+    </table>
+</div>
+<script>
+
+    // let curr_type = "operator";
+
+    let curr_type = getCookie("curr_type")
+
+    let init_url = host + init_api + curr_type;
+    init_page()
+
+    function init_page() {
+        $.ajaxSettings.async = false;
+        $.get(init_url, function (data, status) {
+            let response_data = JSON.stringify(data);
+            console.log("任务创建完成" + response_data);
+            resObj = JSON.parse(response_data);
+            alert(resObj.msg)
+        });
+        // $.ajaxSettings.async = true;
+    }
+
+    let status_url = host + status_api + resObj.task_id;
+    let input_url = host + input_api + resObj.task_id;
+
+
+    console.log("状态查询地址：" + status_url)
+    console.log("信息输入地址：" + input_url)
+    /*然后通过task_id 进行任务状态检测。
+        每一次轮询的超时时间为5分钟。
+    * 如果状态为DOING，就继续检测，执行轮询
+    * 如果状态不为DOING，就进行判断，
+    *   如果为ERROR ，任务不进行，alert相关错误信息，
+    *   如果为input，则动态拼接其输入框，让用户输入。
+    * */
+    var query_time = 60 * 5;// 查询的时间为 最大五分钟 60*5
+    var continunFlag = true;
+
+    status_query();
+
+
+    /*状态查询*/
+    function status_query() {
+        status_query_request()
+        if (resObj.status == status_input) {
+            // 填充用于输入的参数
+
+            $(".input table").children().remove();
+
+            for (index in resObj.data) {
+                item = resObj.data[index]
+                var innerText = "        <tr>\n" +
+                    "            <td>" + item.desc + ":</td>\n" +
+                    "            <td>\n" +
+                    "                <input type=\"text\" name=\"" + item.key + "\" value=\"" + item.prompt + "\"\n" +
+                    "                       onfocus=\"if(this.value=='" + item.prompt + "'|| this.value=='" + item.prompt + "'){this.value=''};\"/>\n" +
+                    "            </td>\n" +
+                    "        </tr>"
+                $(".input table").append(innerText);
+            }
+            let buttonHtml = "        <tr>\n" +
+                "            <td align=\"center\" colspan=\"2\">\n" +
+                "                <button id=\"submit\" style=\"margin: auto\" onclick=\"submit_info()\">提交</button>\n" +
+                "            </td>\n" +
+                "        </tr>";
+            $(".input table").append(buttonHtml);
+        } else if (resObj.status == status_error) {
+            alert("授权异常,msg=" + resObj.msg);
+        } else if (resObj.status == status_done) {
+            alert("授权成功")
+        }
+    }
+
+    /*状态查询请求*/
+    function status_query_request() {
+        for (var i = 0; i < query_time; i++) {
+            if (continunFlag) {
+                sleep(1000);
+                $.ajaxSettings.async = false;
+                $.get(status_url, function (data, status) {
+                    let response_data = JSON.stringify(data);
+                    console.log("任务状态查询接口：" + response_data);
+                    resObj = JSON.parse(response_data);
+                    if (resObj.status != "DOING") {
+                        // window.clearInterval(query);
+                        remove_loading();
+                        continunFlag = false;
+                    }
+                });
+            }// 一秒查询一次状态
+            else {
+                break;
+            }
+        }
+        continunFlag = true;
+    }
+
+
+    function submit_info(){
+        loading();
+        let elements = document.getElementsByTagName("input");
+        var requestBody = {};
+
+        for (var i = 0; i < elements.length; i++) {
+            let htmlElement = elements.item(i);
+            requestBody[htmlElement.getAttribute("name")] = htmlElement.value;
+        }
+        console.log("requestBody:" + JSON.stringify(requestBody))
+        $.ajaxSettings.async = false;
+        $.ajax({
+            contentType: 'application/json',
+            type: 'POST',
+            url: input_url,
+            data: JSON.stringify(requestBody),
+            success: function (data) {
+                let response_data = JSON.stringify(data);
+                console.log("任务状态查询接口：" + response_data);
+                resObj = JSON.parse(response_data);
+                console.log(resObj.task_id + "---数据提交成功 , response:" + response_data);
+                status_query();
+            }
+        });
+    }
+
+    /*信息提交*/
+    /*    $("#submit").click(function () {
+
+        });*/
+
+    function remove_loading() {
+        var siteWelcome = document.getElementById('siteWelcome');
+        siteWelcome.classList.remove('active');
+    }
+
+    function loading() {
+        document.getElementById("siteWelcome").setAttribute("class", "site-welcome active");
+        // $("#siteWelcome").setAttribute("class","site-welcome active");
+    }
+</script>
+</body>
+</html>
+

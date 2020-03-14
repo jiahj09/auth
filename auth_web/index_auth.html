@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>体验中心</title>
+    <script src="./js/jquery-3.4.1.min.js"></script>
+    <script src=" ./js/config.js"></script>
+    <script>
+        let support_url = host + support_api;
+
+        init_page();
+
+        function init_page() {
+            $.ajaxSettings.async = false;
+            $.get(support_url, function (data, status) {
+                if (status.toUpperCase() == status_success) {
+                    let response_data = JSON.stringify(data);
+                    console.log("授权支持列表查询结束：" + response_data);
+                    resObj = JSON.parse(response_data);
+                } else {
+                    alert("授权支持列表查询失败~，请稍后再试~~~")
+                }
+            });
+        }
+
+        let curr_type = undefined;
+        let curr_data = resObj.data;
+
+        $(document).on("click", "li div", function () {
+            let type = this.getAttribute("type");
+            if (curr_type == undefined) curr_type = type;
+            else curr_type = curr_type + "_" + type;
+
+            console.log("点击生效，name=" + this.getAttribute("name") + "type=" + curr_type)
+            let childProp = find_child_prop(curr_data, type);
+            if (childProp == undefined) {
+                console.log("没有子类型，需要跳转到授权信息填写页面")
+                setCookie("curr_type", curr_type,100);
+                location.href = "./submit.html";
+            } else {
+                curr_data = childProp;
+                $("li").remove();
+                fill_page(curr_data);
+                liColor();
+            }
+
+
+        })
+
+        function find_child_prop(data, type) {
+            for (index in data) {
+                let item = data[index];
+                if (item["type"] == type) {
+                    if (item["child_flag"]) {
+                        return item["child_prop"];
+                    }
+                }
+
+            }
+        }
+
+    </script>
+</head>
+<style type="text/css">
+    body {
+        background-color: darkgray;
+    }
+
+    ul {
+        display: flex;
+        flex-direction: column;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    li {
+        flex: 1;
+        text-align: center;
+        line-height: 100px;
+        list-style: none;
+        border-right: 1px solid grey;
+        border-bottom: 1px solid grey;
+        width: 20%;
+        font-size: 200%;
+    }
+</style>
+<body>
+<h1 style="text-align: center">体验中心</h1>
+<ul>
+
+</ul>
+<script>
+    fill_page(resObj.data)
+
+    /*页面填充*/
+    function fill_page(data) {
+        console.log("页面列表添加完成！")
+        for (index in data) {
+            let item = data[index];
+            let type = item.type;
+            let name = item.name;
+            if (type != undefined) {
+                var inertHtml = "<li>\n" +
+                    "        <div name=\"" + name + "\" type=\"" + type + "\">" + name + "</div>\n" +
+                    "    </li>";
+                $("ul").append(inertHtml);
+            }
+        }
+    }
+</script>
+<script>
+    /*li 背景颜色随机选择函数*/
+    $(function () {
+        liColor();
+    })
+
+    function liColor() {
+        $("li").each(function () {
+            $(this).css("background", getRandomColor());
+        })
+    }
+
+    function getRandomColor() {
+        var cArray = ['cornflowerblue', 'antiquewhite', 'darksalmon', 'palegreen', 'aqua'];
+        let number = Math.round(Math.random() * 4);
+        return cArray[number];
+    }
+</script>
+</div>
+</body>
+</html>

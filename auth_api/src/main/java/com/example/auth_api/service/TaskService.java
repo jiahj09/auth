@@ -37,8 +37,10 @@ public class TaskService {
 
     public Response getStatus(String task_id) {
         String status = taskUtils.getStatus(task_id);
+        if (status == null) return new Response(task_id, StatusEnum.ERROR, "当前task_id，不存在！");
         String msg = taskUtils.getMsg(task_id);
         Object needInputField = taskUtils.getNeedInputField(task_id);
+
 
         StatusEnum statusEnum = StatusEnum.DOING;
         if (status.equals(StatusEnum.DOING.toString())) {
@@ -60,7 +62,8 @@ public class TaskService {
     public Response input(String task_id, JSONObject param) {
         String msg;
         String status = taskUtils.getStatus(task_id);
-        if (status != null && status.equals(StatusEnum.INPUT.toString())) {
+        if (status == null) return new Response(task_id, StatusEnum.ERROR, "当前task_id，不存在！");
+        if (status.equals(StatusEnum.INPUT.toString())) {
             taskUtils.setMsg(task_id, null);
             taskUtils.setInputParams(task_id, param);
             taskUtils.setStatusDoing(task_id);
@@ -72,10 +75,8 @@ public class TaskService {
             msg = "当前非输入状态，不可进行信息输入！";
         }
 
-
         Response response = new Response(task_id, StatusEnum.SUCCESS, msg);
         return response;
     }
-
 
 }

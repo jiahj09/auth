@@ -57,12 +57,15 @@ public class TaskUtils {
     @Value("${spring.redis.expire_seconds}")
     private long expire_seconds;
 
-    @Autowired
     StringRedisTemplate redisTemplate;
 
-    @Autowired
     RabbitTemplate rabbitTemplate;
 
+    @Autowired
+    public TaskUtils(StringRedisTemplate redisTemplate, RabbitTemplate rabbitTemplate) {
+        this.redisTemplate = redisTemplate;
+        this.rabbitTemplate = rabbitTemplate;
+    }
 
     public void pushMQ(MSGInfo msgInfo) {
         String QUEUE = msgInfo.getType().toUpperCase();
@@ -83,27 +86,32 @@ public class TaskUtils {
         redisTemplate.opsForHash().put(task_id, next_step_key, StepEnum.INIT.toString());
         setStatusDoing(task_id);
         redisTemplate.expire(task_id, expire_seconds, TimeUnit.SECONDS);
+        logger.info("create task_info: task_id={} , next_step ={}", task_id, StepEnum.INIT);
     }
 
     public void setStatusDoing(String task_id) {
         redisTemplate.opsForHash().put(task_id, status_key, StatusEnum.DOING.toString());
+        logger.info("set status DOING: task_id={}");
     }
 
     public void setStatusInput(String task_id, List<ParamEnum> paramEnums) {
         // 需要 api 输入的信息，不进行累增，每次刷新
         redisTemplate.opsForHash().put(task_id, input_fields_key, paramEnums.toString());
         redisTemplate.opsForHash().put(task_id, status_key, StatusEnum.INPUT.toString());
+        logger.info("set status INPUT: task_id={} , need fields = {}", task_id, paramEnums);
     }
 
     public void setStatusDone(String task_id, String msg) {
         redisTemplate.opsForHash().put(task_id, msg_key, msg);
         redisTemplate.opsForHash().delete(task_id, input_fields_key);
         redisTemplate.opsForHash().put(task_id, status_key, StatusEnum.DONE.toString());
+        logger.info("set status DONE: task_id={} , msg = {}", task_id, msg);
     }
 
     public void setStatusError(String task_id, String msg) {
         redisTemplate.opsForHash().put(task_id, msg_key, msg);
         redisTemplate.opsForHash().put(task_id, status_key, StatusEnum.ERROR.toString());
+        logger.info("set status ERROR: task_id={} , msg={}", task_id, msg);
     }
 
     /**
@@ -136,6 +144,7 @@ public class TaskUtils {
 
     public String getStatus(String task_id) {
         Object o = redisTemplate.opsForHash().get(task_id, status_key);
+        if (o == null) return null;
         return o.toString();
     }
 
@@ -151,6 +160,7 @@ public class TaskUtils {
         } else {
             redisTemplate.opsForHash().put(task_id, msg_key, msg);
         }
+
     }
 
     public Object getNeedInputField(String task_id) {

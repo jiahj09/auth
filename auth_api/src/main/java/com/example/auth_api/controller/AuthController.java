@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
  * @Author:JIUNLIU
  * @data : 2020/3/6 9:38
  */
+@CrossOrigin
 @RestController
 @RequestMapping("auth")
 public class AuthController {
