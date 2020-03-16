@@ -20,6 +20,11 @@ public class BeiJingTelecomFetcher extends BasicFetcher {
     public void login(String task_id) {
         String phone = taskUtils.getInputParam(task_id, ParamEnum.PHONE);
         String loginPassword = taskUtils.getInputParam(task_id, ParamEnum.LOGIN_PASSWORD);
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         if (loginPassword != null && loginPassword.equals("123456")) {
             taskUtils.setStatusDone(task_id, "授权成功！");
         } else {

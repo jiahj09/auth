@@ -1,5 +1,6 @@
 package com.example.auth_api.controller;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.example.auth_api.domain.Response;
 import com.example.auth_api.service.TaskService;
@@ -9,6 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Stack;
 
 /**
  * 功能：授权对外web api
@@ -32,7 +37,7 @@ public class AuthController {
 
 
     /**
-     * 查询所有可用授权类型
+     * 查询所有可用授权类型，对应到当前用户所支持的列表
      * <p>
      * 用于解析数据内容：
      *
@@ -65,9 +70,14 @@ public class AuthController {
 
     @RequestMapping(value = "init/{type}")
     public ResponseEntity<Response> init(@PathVariable String type) {
-        // TODO type 校验
-        String task_id = taskService.createTask(type);
-        Response response = new Response(task_id, StatusEnum.SUCCESS, type + "类型任务，初始化创建成功！");
+        Response response;
+        boolean b = typeCheck(type);
+        if (b) {
+            String task_id = taskService.createTask(type);
+            response = new Response(task_id, StatusEnum.SUCCESS, type + "类型任务，初始化创建成功！");
+        } else {
+            response = new Response(null, StatusEnum.ERROR, type + "输入错误，当前type，不受支持~");
+        }
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -86,5 +96,23 @@ public class AuthController {
 
         Response response = taskService.input(task_id, paramObject);
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+
+    /**
+     * 授权项目，是否受到支持。~~~
+     * @param type
+     * @return
+     */
+    public boolean typeCheck(String type) {
+        Object allSupportType = typeService.getAllSupportType();
+        String s = JSONObject.toJSONString(allSupportType);
+        JSONArray objects = JSONArray.parseArray(s);
+        List<String> avTypes = new ArrayList<>();
+        Stack<String> tempStack = new Stack<>();
+        typeService.findAllType(objects, avTypes, tempStack);
+
+        if (avTypes.contains(type)) return true;
+        else return false;
     }
 }

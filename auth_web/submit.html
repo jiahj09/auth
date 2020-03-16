@@ -195,7 +195,8 @@
 
 
     function submit_info(){
-        loading();
+        setTimeout(loading(),1);
+        console.log("已加载动画")
         let elements = document.getElementsByTagName("input");
         var requestBody = {};
 

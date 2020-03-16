@@ -53,7 +53,10 @@ public class TaskService {
             statusEnum = StatusEnum.INPUT;
         }
         Response response = new Response(task_id, statusEnum, msg);
-        response.setData(needInputField);
+        if (statusEnum == StatusEnum.INPUT)
+            response.setData(needInputField);
+        else
+            response.setData(null);
 
         return response;
     }

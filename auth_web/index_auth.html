@@ -26,6 +26,11 @@
         let curr_type = undefined;
         let curr_data = resObj.data;
 
+        if (curr_data == undefined){
+            alert("支持列表查询失败~，页面停止加载，请稍后再试~~~~")
+            window.stop();
+        }
+
         $(document).on("click", "li div", function () {
             let type = this.getAttribute("type");
             if (curr_type == undefined) curr_type = type;

@@ -12,6 +12,7 @@ import com.alibaba.fastjson.JSONObject;
 public class FetchInfo {
 
     JSONObject fields;// 相关字段存储
+    String fetchBean;
 
     @Override
     public String toString() {
