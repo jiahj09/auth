@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.example.auth_comm.constant.ParamEnum;
 import com.example.auth_comm.constant.StepEnum;
-import com.example.auth_fetch_operator.AuthFetchOperatorApplication;
+import webspider.utils.ContextUtil;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
@@ -24,24 +24,33 @@ public class FetchFactory extends BasicFetcher {
     public BasicFetcher getFetcher(String task_id) {
         String resultBeanName;
         String phone = taskUtils.getInputParam(task_id, ParamEnum.PHONE);
-
-        String phoneOwenBeanName = getPhoneOwenBeanName(phone);
-        if (phoneOwenBeanName != null) { // 手机号码被单独分配通道
-            resultBeanName = phoneOwenBeanName;
-        } else { //手机号码并没有被单独分配通道
+        /**
+         * 仅仅第一次的时候进行选择，后续的操作都按照第一次的选择的备案进行操作
+         * 这样的话，即使一个授权在中途进行了切换，也不会对已经进行一般的抓取任务造成影响
+         */
+        resultBeanName = fetchUtil.getField(task_id, "fetch_bean");
+        if (resultBeanName == null) {
             JSONObject segmentObj = mobileSegmentUtil.mobileSegment(phone);
             String carrier = segmentObj.getString("carrier");
-            List<String> carrierBeans = getCarrierBeans(carrier);
-            if (carrierBeans != null) { // 该省份已经被确定固定渠道，按照固定渠道选择即可。
-                resultBeanName = randomBean(carrierBeans);
-            } else {// 没有被设定渠道信息。
-                String catName = segmentObj.getString("catName");
-                List<String> catCarrierBeans = getCatCarrierBeans(catName, carrier);
-                resultBeanName = randomBean(catCarrierBeans);
+            String catName = segmentObj.getString("catName");
+            fetchUtil.setField(task_id, "carrier", carrier);
+            fetchUtil.setField(task_id, "cat_name", catName);
+            String phoneOwenBeanName = getPhoneOwenBeanName(phone);
+            if (phoneOwenBeanName != null) { // 手机号码被单独分配通道
+                resultBeanName = phoneOwenBeanName;
+            } else { //手机号码并没有被单独分配通道
+                List<String> carrierBeans = getCarrierBeans(carrier);
+                if (carrierBeans != null) { // 该省份已经被确定固定渠道，按照固定渠道选择即可。
+                    resultBeanName = randomBean(carrierBeans);
+                } else {// 没有被设定渠道信息。
+                    List<String> catCarrierBeans = getCatCarrierBeans(catName, carrier);
+                    resultBeanName = randomBean(catCarrierBeans);
+                }
             }
+            if (resultBeanName == null) return null;
         }
-        if (resultBeanName == null) return null;
-        return (BasicFetcher) AuthFetchOperatorApplication.applicationContext.getBean(resultBeanName);
+        fetchUtil.setField(task_id, "fetch_bean", resultBeanName);
+        return (BasicFetcher) ContextUtil.getObj(resultBeanName);
     }
 
 

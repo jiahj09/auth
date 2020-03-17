@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -99,6 +100,12 @@ public class TaskUtils {
         redisTemplate.opsForHash().put(task_id, input_fields_key, paramEnums.toString());
         redisTemplate.opsForHash().put(task_id, status_key, StatusEnum.INPUT.toString());
         logger.info("set status INPUT: task_id={} , need fields = {}", task_id, paramEnums);
+    }
+
+    public void setStatusInput(String task_id, ParamEnum paramEnum) {
+        setStatusInput(task_id, new ArrayList<ParamEnum>() {{
+            add(paramEnum);
+        }});
     }
 
     public void setStatusDone(String task_id, String msg) {

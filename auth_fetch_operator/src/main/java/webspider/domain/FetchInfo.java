@@ -1,6 +1,9 @@
-package com.example.auth_comm.domain;
+package webspider.domain;
 
 import com.alibaba.fastjson.JSONObject;
+import org.apache.http.cookie.Cookie;
+
+import java.util.List;
 
 /**
  * 功能：
@@ -13,6 +16,8 @@ public class FetchInfo {
 
     JSONObject fields;// 相关字段存储
     String fetchBean;
+    List<Cookie> cookies;
+
 
     @Override
     public String toString() {
