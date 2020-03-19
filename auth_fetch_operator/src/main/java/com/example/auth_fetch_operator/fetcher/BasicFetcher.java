@@ -2,6 +2,9 @@ package com.example.auth_fetch_operator.fetcher;
 
 import com.example.auth_comm.utils.ContextUtil;
 import com.example.auth_comm.utils.TaskUtils;
+import com.example.auth_fetch_operator.domain.BaseInfo;
+import com.example.auth_fetch_operator.domain.BillInfo;
+import com.example.auth_fetch_operator.domain.CallInfo;
 import com.example.auth_fetch_operator.utils.MobileSegmentUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +14,8 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import com.example.auth_comm.utils.FetchUtil;
+
+import java.util.List;
 
 /**
  * 功能：
@@ -60,11 +65,12 @@ public class BasicFetcher {
     }
 
     /**
-     * 基本信息
+     * 基本信息采集解析
      *
      * @param task_id
      */
-    public void base_info(String task_id) {
+    public BaseInfo base_info(String task_id) {
+        return null;
     }
 
     /**
@@ -76,11 +82,12 @@ public class BasicFetcher {
     }
 
     /**
-     * 账单
+     * 账单信息解析获取
      *
      * @param task_id
      */
-    public void bill_info(String task_id) {
+    public List<BillInfo> bill_info(String task_id) {
+        return null;
     }
 
     /**
@@ -92,11 +99,12 @@ public class BasicFetcher {
     }
 
     /**
-     * 详单
+     * 详单信息解析获取
      *
      * @param task_id
      */
-    public void call_info(String task_id) {
+    public List<CallInfo> call_info(String task_id) {
+        return null;
     }
 
     /**

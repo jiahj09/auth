@@ -5,6 +5,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.example.auth_comm.constant.ParamEnum;
 import com.example.auth_comm.constant.StepEnum;
 import com.example.auth_comm.utils.ContextUtil;
+import com.example.auth_fetch_operator.domain.BaseInfo;
+import com.example.auth_fetch_operator.domain.BillInfo;
+import com.example.auth_fetch_operator.domain.CallInfo;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
@@ -166,10 +169,10 @@ public class FetchFactory extends BasicFetcher {
     }
 
     @Override
-    public void base_info(String task_id) {
+    public BaseInfo base_info(String task_id) {
         String beanName = getFetcher(task_id);
         BasicFetcher fetcher = (BasicFetcher) ContextUtil.getObj(beanName);
-        fetcher.base_info(task_id);
+        return fetcher.base_info(task_id);
     }
 
     @Override
@@ -180,10 +183,10 @@ public class FetchFactory extends BasicFetcher {
     }
 
     @Override
-    public void bill_info(String task_id) {
+    public List<BillInfo> bill_info(String task_id) {
         String beanName = getFetcher(task_id);
         BasicFetcher fetcher = (BasicFetcher) ContextUtil.getObj(beanName);
-        fetcher.bill_info(task_id);
+        return fetcher.bill_info(task_id);
     }
 
     @Override
@@ -194,10 +197,10 @@ public class FetchFactory extends BasicFetcher {
     }
 
     @Override
-    public void call_info(String task_id) {
+    public List<CallInfo> call_info(String task_id) {
         String beanName = getFetcher(task_id);
         BasicFetcher fetcher = (BasicFetcher) ContextUtil.getObj(beanName);
-        fetcher.call_info(task_id);
+        return fetcher.call_info(task_id);
     }
 
     @Override

@@ -1,8 +1,12 @@
 package com.example.auth_fetch_operator.fetcher.cmcc;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.example.auth_comm.constant.ParamEnum;
 import com.example.auth_comm.constant.StepEnum;
+import com.example.auth_fetch_operator.domain.BaseInfo;
+import com.example.auth_fetch_operator.domain.BillInfo;
+import com.example.auth_fetch_operator.domain.CallInfo;
 import com.example.auth_fetch_operator.fetcher.BasicFetcher;
 import org.springframework.stereotype.Component;
 import webspider.WRequest;
@@ -14,6 +18,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -55,15 +60,6 @@ public class CmccShopFetcher extends BasicFetcher {
         put("Content-Type", "*");
     }};
 
-
-    @Override
-    public void init(String task_id) {
-        taskUtils.setStatusInput(task_id, new ArrayList<ParamEnum>() {{
-            add(ParamEnum.PHONE);
-            add(ParamEnum.LOGIN_PASSWORD);
-        }});
-        taskUtils.setNextStep(task_id, StepEnum.LOGIN);
-    }
 
     @Override
     public void login(String task_id) {
@@ -216,7 +212,7 @@ public class CmccShopFetcher extends BasicFetcher {
 
 
     @Override
-    public void bill_info(String task_id) {
+    public List<BillInfo> bill_info(String task_id) {
         String phone = taskUtils.getInputParam(task_id, ParamEnum.PHONE);
         String curr_url = fetchUtil.getField(task_id, "curr_url");
         //                    put("Referer", curr_url);
@@ -227,12 +223,14 @@ public class CmccShopFetcher extends BasicFetcher {
                 .execute();
         String responseBody = response.getResponseBody();
         JSONObject jsonObject = JSONObject.parseObject(responseBody);
-        //TODO parse origin data to object
+        String data = jsonObject.getString("data");
+        List<BillInfo> billInfos = JSONArray.parseArray(data, BillInfo.class);
+        return billInfos;
     }
 
 
     @Override
-    public void base_info(String task_id) {
+    public BaseInfo base_info(String task_id) {
         String phone = taskUtils.getInputParam(task_id, ParamEnum.PHONE);
         String curr_url = fetchUtil.getField(task_id, "curr_url");
         Response response = WRequest.create(task_id)
@@ -242,11 +240,37 @@ public class CmccShopFetcher extends BasicFetcher {
                 .execute();
         String responseBody = response.getResponseBody();
         JSONObject jsonObject = JSONObject.parseObject(responseBody);
+        JSONObject data = jsonObject.getJSONObject("data");
+        JSONObject custInfoQryOut = data.getJSONObject("custInfoQryOut");
+        String name = custInfoQryOut.getString("name");
+        String inNetDate = custInfoQryOut.getString("inNetDate");
+        String netAge = custInfoQryOut.getString("netAge");
+        // TODO 网龄的处理
+        String address = custInfoQryOut.getString("address");
+        String email = custInfoQryOut.getString("email");
+        String zipCode = custInfoQryOut.getString("zipCode");
+        String contactNum = custInfoQryOut.getString("contactNum");
+
+        JSONObject curPlanQryOut = data.getJSONObject("curPlanQryOut");
+        String curPlanName = curPlanQryOut.getString("curPlanName");
+
+        BaseInfo baseInfo = new BaseInfo();
+        baseInfo.setPhone(phone);
+        baseInfo.setAddress(address);
+        baseInfo.setContactNum(contactNum);
+        baseInfo.setCurPlanName(curPlanName);
+        baseInfo.setName(name);
+        baseInfo.setInNetDate(inNetDate);
+        baseInfo.setNetAge(netAge);
+        baseInfo.setEmail(email);
+        baseInfo.setZipCode(zipCode);
+
+        return baseInfo;
     }
 
 
     @Override
-    public void call_info(String task_id) {
+    public List<CallInfo> call_info(String task_id) {
         System.err.println("北京电信。进来啦~~~~~~~~~~~~~~");
         throw new RuntimeException("处理异常啦");
     }

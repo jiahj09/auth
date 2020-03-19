@@ -13,7 +13,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @EnableAsync
 public class AuthFetchOperatorApplication {
 
-
     public static void main(String[] args) {
         ApplicationContext applicationContext = SpringApplication.run(AuthFetchOperatorApplication.class, args);
         ContextUtil.setApp(applicationContext);

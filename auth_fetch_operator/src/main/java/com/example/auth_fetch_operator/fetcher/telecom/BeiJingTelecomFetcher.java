@@ -2,6 +2,7 @@ package com.example.auth_fetch_operator.fetcher.telecom;
 
 import com.example.auth_comm.constant.ParamEnum;
 import com.example.auth_comm.constant.StepEnum;
+import com.example.auth_fetch_operator.domain.BaseInfo;
 import com.example.auth_fetch_operator.fetcher.BasicFetcher;
 import org.springframework.stereotype.Component;
 
@@ -37,7 +38,7 @@ public class BeiJingTelecomFetcher extends BasicFetcher {
     }
 
     @Override
-    public void base_info(String task_id) {
+    public BaseInfo base_info(String task_id) {
         System.err.println("北京电信。进来啦~~~~~~~~~~~~~~");
         throw new RuntimeException("处理异常啦");
 

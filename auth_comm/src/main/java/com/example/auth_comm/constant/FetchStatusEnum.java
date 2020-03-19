@@ -10,6 +10,7 @@ package com.example.auth_comm.constant;
 public enum FetchStatusEnum {
     START("开始数据抓取"),     // 开始数据抓取
     END("结束数据抓取"),//结束数据抓取
+    SAVED("数据已保存"),//数据已保存
     ERROR("数据抓取异常");//数据抓取异常
     String msg;
 
