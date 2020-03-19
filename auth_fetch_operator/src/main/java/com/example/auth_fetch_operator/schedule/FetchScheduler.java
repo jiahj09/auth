@@ -57,7 +57,7 @@ public class FetchScheduler {
                 break;
             case BASE:
                 logger.info("task_id={}, BASE", task_id);
-                fetchFactory.base(task_id);
+                fetchFactory.base_info(task_id);
                 break;
             case BASE_SMS:
                 logger.info("task_id={}, BASE_SMS", task_id);
@@ -65,7 +65,7 @@ public class FetchScheduler {
                 break;
             case BILL:
                 logger.info("task_id={}, BILL", task_id);
-                fetchFactory.bill(task_id);
+                fetchFactory.bill_info(task_id);
                 break;
             case BILL_SMS:
                 logger.info("task_id={}, BILL_SMS", task_id);
@@ -73,11 +73,14 @@ public class FetchScheduler {
                 break;
             case CALL:
                 logger.info("task_id={}, CALL", task_id);
-                fetchFactory.call(task_id);
+                fetchFactory.call_info(task_id);
                 break;
             case CALL_SMS:
                 logger.info("task_id={}, CALL_SMS", task_id);
                 fetchFactory.call_sms(task_id);
+                break;
+            case CUSTOM_DEAL:
+                fetchFactory.custom_deal(task_id);
                 break;
         }
 

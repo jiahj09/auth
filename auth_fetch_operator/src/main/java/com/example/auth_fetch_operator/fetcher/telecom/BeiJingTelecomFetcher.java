@@ -13,7 +13,7 @@ import java.util.ArrayList;
  * @Author:JIUNLIU
  * @data : 2020/3/8 11:19
  */
-@Component("beijing_telecom")
+@Component("ctcc_beijing")
 public class BeiJingTelecomFetcher extends BasicFetcher {
 
     @Override
@@ -21,7 +21,7 @@ public class BeiJingTelecomFetcher extends BasicFetcher {
         String phone = taskUtils.getInputParam(task_id, ParamEnum.PHONE);
         String loginPassword = taskUtils.getInputParam(task_id, ParamEnum.LOGIN_PASSWORD);
         try {
-            Thread.sleep(5000);
+            Thread.sleep(20000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -34,5 +34,12 @@ public class BeiJingTelecomFetcher extends BasicFetcher {
             }});
             taskUtils.setNextStep(task_id, StepEnum.LOGIN);
         }
+    }
+
+    @Override
+    public void base_info(String task_id) {
+        System.err.println("北京电信。进来啦~~~~~~~~~~~~~~");
+        throw new RuntimeException("处理异常啦");
+
     }
 }

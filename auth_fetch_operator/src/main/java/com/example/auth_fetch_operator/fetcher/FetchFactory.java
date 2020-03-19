@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.example.auth_comm.constant.ParamEnum;
 import com.example.auth_comm.constant.StepEnum;
-import webspider.utils.ContextUtil;
+import com.example.auth_comm.utils.ContextUtil;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
@@ -21,7 +21,7 @@ import java.util.List;
 @Component
 public class FetchFactory extends BasicFetcher {
 
-    public BasicFetcher getFetcher(String task_id) {
+    public String getFetcher(String task_id) {
         String resultBeanName;
         String phone = taskUtils.getInputParam(task_id, ParamEnum.PHONE);
         /**
@@ -50,7 +50,7 @@ public class FetchFactory extends BasicFetcher {
             if (resultBeanName == null) return null;
         }
         fetchUtil.setField(task_id, "fetch_bean", resultBeanName);
-        return (BasicFetcher) ContextUtil.getObj(resultBeanName);
+        return resultBeanName;
     }
 
 
@@ -149,46 +149,68 @@ public class FetchFactory extends BasicFetcher {
 
     @Override
     public void login(String task_id) {
-        BasicFetcher fetcher = getFetcher(task_id);
-        if (fetcher == null) {
+        String beanName = getFetcher(task_id);
+        if (beanName == null) {
             taskUtils.setStatusError(task_id, "当前手机号码不支持");
             return;
         }
+        BasicFetcher fetcher = (BasicFetcher) ContextUtil.getObj(beanName);
         fetcher.login(task_id);
     }
 
     @Override
     public void login_sms(String task_id) {
-        getFetcher(task_id).login_sms(task_id);
+        String beanName = getFetcher(task_id);
+        BasicFetcher fetcher = (BasicFetcher) ContextUtil.getObj(beanName);
+        fetcher.login_sms(task_id);
     }
 
     @Override
-    public void base(String task_id) {
-        getFetcher(task_id).base(task_id);
+    public void base_info(String task_id) {
+        String beanName = getFetcher(task_id);
+        BasicFetcher fetcher = (BasicFetcher) ContextUtil.getObj(beanName);
+        fetcher.base_info(task_id);
     }
 
     @Override
     public void base_sms(String task_id) {
-        getFetcher(task_id).base_sms(task_id);
+        String beanName = getFetcher(task_id);
+        BasicFetcher fetcher = (BasicFetcher) ContextUtil.getObj(beanName);
+        fetcher.base_sms(task_id);
     }
 
     @Override
-    public void bill(String task_id) {
-        getFetcher(task_id).bill(task_id);
+    public void bill_info(String task_id) {
+        String beanName = getFetcher(task_id);
+        BasicFetcher fetcher = (BasicFetcher) ContextUtil.getObj(beanName);
+        fetcher.bill_info(task_id);
     }
 
     @Override
     public void bil_sms(String task_id) {
-        getFetcher(task_id).bil_sms(task_id);
+        String beanName = getFetcher(task_id);
+        BasicFetcher fetcher = (BasicFetcher) ContextUtil.getObj(beanName);
+        fetcher.bil_sms(task_id);
     }
 
     @Override
-    public void call(String task_id) {
-        getFetcher(task_id).call(task_id);
+    public void call_info(String task_id) {
+        String beanName = getFetcher(task_id);
+        BasicFetcher fetcher = (BasicFetcher) ContextUtil.getObj(beanName);
+        fetcher.call_info(task_id);
     }
 
     @Override
     public void call_sms(String task_id) {
-        getFetcher(task_id).call_sms(task_id);
+        String beanName = getFetcher(task_id);
+        BasicFetcher fetcher = (BasicFetcher) ContextUtil.getObj(beanName);
+        fetcher.call_sms(task_id);
+    }
+
+    @Override
+    public void custom_deal(String task_id) {
+        String beanName = getFetcher(task_id);
+        BasicFetcher fetcher = (BasicFetcher) ContextUtil.getObj(beanName);
+        fetcher.custom_deal(task_id);
     }
 }

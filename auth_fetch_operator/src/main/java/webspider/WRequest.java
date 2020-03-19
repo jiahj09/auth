@@ -2,17 +2,18 @@ package webspider;
 
 
 import com.alibaba.fastjson.JSONObject;
-import webspider.utils.ContextUtil;
+import org.apache.http.client.CookieStore;
+import org.apache.http.impl.client.BasicCookieStore;
+import com.example.auth_comm.utils.ContextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import webspider.http.Method;
 import webspider.http.Request;
 import webspider.http.Response;
-import webspider.http.cookie.CookieStore;
 import webspider.http.downloader.Downloader;
 import webspider.http.downloader.HttpClientDownloader;
 import webspider.http.downloader.JsoupDownloader;
-import webspider.utils.FetchUtil;
+import com.example.auth_comm.utils.FetchUtil;
 
 import java.util.*;
 
@@ -48,6 +49,10 @@ public class WRequest {
 
     private FetchUtil fetchUtil = ContextUtil.getObj(FetchUtil.class);
 
+    private List<String> historyUrls;
+
+    private int maxRedirectTime = 5;
+
     public static WRequest create(String taskId) {
         return new WRequest(taskId);
     }
@@ -61,6 +66,11 @@ public class WRequest {
             setTaskId(taskId);
         }};
         this.request.setUrl(httpUrl);
+        return this;
+    }
+
+    public WRequest maxRedirect(int maxRedirectTime) {
+        this.maxRedirectTime = maxRedirectTime;
         return this;
     }
 
@@ -159,18 +169,46 @@ public class WRequest {
     }
 
     public Response execute() {
-        if (this.downloader == null) this.downloader = new JsoupDownloader();
-        CookieStore cookieStore = fetchUtil.getCookies(taskId);
-        this.request.setCookieStore(cookieStore);
+        if (this.downloader == null) this.downloader = new HttpClientDownloader();
+        Response response = exe();
+        if (response != null) {
+            if (response.getStatusCode() > 299 && response.getStatusCode() < 400) {
+                if (this.maxRedirectTime > 0) { // 有剩余redirect 次数
+                    this.maxRedirectTime--;
+                    if (response.getLocation() != null) {
+                        if (this.historyUrls == null) this.historyUrls = new ArrayList<>();
+                        this.historyUrls.add(this.request.getUrl());
 
+                        this.request.setUrl(response.getLocation());
+                        this.request.setMethod(Method.GET);
+                        return execute();
+                    }
+                } else {
+                    return response;
+                }
+            }
+        }
+        if (this.historyUrls != null) this.historyUrls.add(this.request.getUrl());
+        response.setHistoryUrls(this.historyUrls);
+        return response;
+    }
+
+
+    private Response exe() {
+        CookieStore cookieStore = fetchUtil.getCookies(taskId);
+        if (cookieStore == null) cookieStore = new BasicCookieStore();
+        this.request.setCookieStore(cookieStore);
         Response response = downloader.download(this.request);
         // 由于jsoup请求后，cookie为单独本次请求返回的cookie信息，HTTP client是所有cookie的融合体，所以，需要进行分开处理
         if (this.downloader instanceof JsoupDownloader) {
-            CookieStore responseCookieStore = response.getCookieStore();
-            fetchUtil.addCookies(taskId, responseCookieStore.getCookies());
+            // TODO JSOUP 的cookie信息处理
         } else if (this.downloader instanceof HttpClientDownloader) {
-            // TODO 将所有的cookie 合并到 cookie 中
+            fetchUtil.updateCookies(taskId, cookieStore);
         }
+        if (response != null)
+            logger.debug("task_id={},res={}", taskId, response.getResponseBody());
+        else
+            logger.debug("task_id={},res={}", taskId, null);
         return response;
     }
 

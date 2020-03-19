@@ -33,7 +33,7 @@ public class MobileSegmentUtil {
         String carrier = jsonObject.getString("carrier");
         return new JSONObject() {{
             put("carrier", carrier);
-            put("catName", carrier);
+            put("catName", catName);
         }};
     }
 }

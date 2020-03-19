@@ -1,8 +1,7 @@
 package webspider.http;
 
 
-import org.apache.http.cookie.Cookie;
-import webspider.http.cookie.CookieStore;
+import org.apache.http.client.CookieStore;
 
 import java.io.OutputStream;
 import java.net.URL;
@@ -35,6 +34,10 @@ public class Response {
     //
     private String charset;
     private URL currentURL;
+    // 用于重定向的location
+    private String location;
+
+    private List<String> historyUrls;
 
 
     public URL getCurrentURL() {
@@ -58,7 +61,6 @@ public class Response {
     }
 
 
-
     public void setResponseBytes(byte[] responseBytes) {
         this.responseBytes = responseBytes;
     }
@@ -78,7 +80,6 @@ public class Response {
     public void setHeaders(Map<String, String> headers) {
         this.headers = headers;
     }
-
 
 
     public String getResponseBody() {
@@ -112,6 +113,23 @@ public class Response {
 
     public void setCookieStore(CookieStore cookieStore) {
         this.cookieStore = cookieStore;
+    }
+
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public List<String> getHistoryUrls() {
+        return historyUrls;
+    }
+
+    public void setHistoryUrls(List<String> historyUrls) {
+        this.historyUrls = historyUrls;
     }
 }
 

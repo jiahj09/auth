@@ -1,14 +1,16 @@
 package com.example.auth_fetch_operator;
 
-import webspider.utils.ContextUtil;
+import com.example.auth_comm.utils.ContextUtil;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 @SpringBootApplication
 @ComponentScan(value = "com.example")
 @ComponentScan(value = "webspider")
+@EnableAsync
 public class AuthFetchOperatorApplication {
 
 

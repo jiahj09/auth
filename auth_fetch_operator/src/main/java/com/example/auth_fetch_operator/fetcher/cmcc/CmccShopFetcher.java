@@ -10,7 +10,9 @@ import webspider.http.Method;
 import webspider.http.Response;
 import webspider.utils.JSEngineUtils;
 
+import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,9 +38,40 @@ public class CmccShopFetcher extends BasicFetcher {
         put("Sec-Fetch-Mode", "no-cors");
     }};
 
+    private Map<String, String> dataHeader = new HashMap<String, String>() {{
+        put("expires", "0");
+        put("Accept", "application/json, text/javascript, */*; q=0.01");
+        put("X-Requested-With", "XMLHttpRequest");
+        put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36");
+        put("Sec-Fetch-Dest", "empty");
+        put("Sec-Fetch-Site", "same-origin");
+        put("Host", "shop.10086.cn");
+        put("Accept-Encoding", "gzip, deflate, br");
+        put("pragma", "no-cache");
+        put("Sec-Fetch-Mode", "cors");
+        put("Cache-Control", "no-store, must-revalidate");
+        put("If-Modified-Since", "0");
+        put("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8,zh-TW;q=0.7");
+        put("Content-Type", "*");
+    }};
+
+
+    @Override
+    public void init(String task_id) {
+        taskUtils.setStatusInput(task_id, new ArrayList<ParamEnum>() {{
+            add(ParamEnum.PHONE);
+            add(ParamEnum.LOGIN_PASSWORD);
+        }});
+        taskUtils.setNextStep(task_id, StepEnum.LOGIN);
+    }
+
     @Override
     public void login(String task_id) {
         String phone = taskUtils.getInputParam(task_id, ParamEnum.PHONE);
+        WRequest.create(task_id)
+                .connect("https://login.10086.cn/")
+                .headers(commHeader)
+                .execute();
         WRequest.create(task_id)
                 .connect("https://login.10086.cn/loadSendflag.htm?timestamp=")
                 .headers(commHeader)
@@ -68,6 +101,7 @@ public class CmccShopFetcher extends BasicFetcher {
             taskUtils.setNextStep(task_id, StepEnum.LOGIN_SMS);
         } else {
             logger.info("task_id={},msg={}", task_id, "登录短信发送失败");
+            taskUtils.setStatusError(task_id, "登录短信验证码发送失败，请稍后再试~");
         }
 
     }
@@ -125,6 +159,7 @@ public class CmccShopFetcher extends BasicFetcher {
         if (responseBody != null && responseBody.equalsIgnoreCase("0")) {
             return true;
         } else {
+            logger.info("task_id={},resp={}", task_id, responseBody);
             return false;
         }
     }
@@ -155,9 +190,64 @@ public class CmccShopFetcher extends BasicFetcher {
                 .execute();
         JSONObject resObj = JSONObject.parseObject(response.getResponseBody());
         String code = resObj.getString("code");
-        if (code != null ){
-            taskUtils.setStatusDone(task_id,"登录成功~");
+        if (code != null && code.equalsIgnoreCase("0000")) {
+            //https://shop.10086.cn/i/v1/auth/getArtifact?backUrl=https%3A%2F%2Fshop.10086.cn%2Fi%2F&artifact=b5b350017c9f400cb0b8cce06e44b8a7&type=00
+            //https://shop.10086.cn/i/v1/auth/getArtifact?backUrl=https://shop.10086.cn/i/&artifact=b5b350017c9f400cb0b8cce06e44b8a7&type=00
+            String artifact = resObj.getString("artifact");
+            String type = resObj.getString("type");
+            String assertAcceptURL = resObj.getString("assertAcceptURL");
+            String httpUrl = assertAcceptURL + "?backUrl=" + URLEncoder.encode("https://shop.10086.cn/i/") + "&artifact=" + artifact + "&type=" + type;
+            Response execute = WRequest.create(task_id)
+                    .connect(httpUrl)
+                    .headers(commHeader)
+                    .execute();
+            URL currentURL = execute.getCurrentURL();
+            fetchUtil.setField(task_id, "curr_url", currentURL.toString());
+
+            taskUtils.setStatusDone(task_id, "登录成功~");
+
+            startFetchBase(task_id);
+            startFetchBill(task_id);
+        } else {// TODO 错误消息的相关配置
+
         }
 
+    }
+
+
+    @Override
+    public void bill_info(String task_id) {
+        String phone = taskUtils.getInputParam(task_id, ParamEnum.PHONE);
+        String curr_url = fetchUtil.getField(task_id, "curr_url");
+        //                    put("Referer", curr_url);
+        Response response = WRequest.create(task_id)
+                .connect("https://shop.10086.cn/i/v1/fee/billinfo/" + phone + "?_=" + System.currentTimeMillis())
+                .headers(dataHeader)
+                .header("Referer", curr_url)
+                .execute();
+        String responseBody = response.getResponseBody();
+        JSONObject jsonObject = JSONObject.parseObject(responseBody);
+        //TODO parse origin data to object
+    }
+
+
+    @Override
+    public void base_info(String task_id) {
+        String phone = taskUtils.getInputParam(task_id, ParamEnum.PHONE);
+        String curr_url = fetchUtil.getField(task_id, "curr_url");
+        Response response = WRequest.create(task_id)
+                .connect("https://shop.10086.cn/i/v1/cust/mergecust/" + phone + "?_=" + System.currentTimeMillis())
+                .headers(dataHeader)
+                .header("Referer", curr_url)
+                .execute();
+        String responseBody = response.getResponseBody();
+        JSONObject jsonObject = JSONObject.parseObject(responseBody);
+    }
+
+
+    @Override
+    public void call_info(String task_id) {
+        System.err.println("北京电信。进来啦~~~~~~~~~~~~~~");
+        throw new RuntimeException("处理异常啦");
     }
 }

@@ -1,5 +1,9 @@
 package com.example.auth_api.controller;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -9,7 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
  * @Author:JIUNLIU
  * @data : 2020/3/16 10:16
  */
+@CrossOrigin
 @RestController
+@RequestMapping("manage")
 public class ManageController {
 
     /**
@@ -40,5 +46,11 @@ public class ManageController {
      */
     public void updateUserAuthority() {
 
+    }
+
+    @RequestMapping("test")
+    public ResponseEntity<Boolean> test() {
+        boolean result = true;
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 }

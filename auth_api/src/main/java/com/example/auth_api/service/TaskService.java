@@ -1,7 +1,9 @@
 package com.example.auth_api.service;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.example.auth_api.domain.Response;
+import com.example.auth_comm.constant.ParamEnum;
 import com.example.auth_comm.constant.StatusEnum;
 import com.example.auth_comm.constant.StepEnum;
 import com.example.auth_comm.domain.MSGInfo;
@@ -9,6 +11,7 @@ import com.example.auth_comm.utils.TaskUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -80,6 +83,15 @@ public class TaskService {
 
         Response response = new Response(task_id, StatusEnum.SUCCESS, msg);
         return response;
+    }
+
+
+    public JSONArray getAllNeedParam(String task_id) {
+        Object needInputField = taskUtils.getNeedInputField(task_id);
+        if (needInputField == null) return null;
+        else {
+            return (JSONArray) needInputField;
+        }
     }
 
 }

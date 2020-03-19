@@ -21,6 +21,7 @@ public enum StepEnum {
     BILL_SMS("BILL_SMS"),
     CALL("CALL"),
     CALL_SMS("CALL_SMS"),
+    CUSTOM_DEAL("CUSTOM_DEAL"),
     ;
 
     String code;

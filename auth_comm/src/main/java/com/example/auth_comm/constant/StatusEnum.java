@@ -12,7 +12,9 @@ public enum StatusEnum {
     DOING("任务正在执行"), // 正在执行
     ERROR("任务处理异常"), // 任务错误
     INPUT("任务需要输入数据"), // 等待输入
-    DONE("任务执行完毕"); // 任务执行完毕
+    PROCESSING("抓取任务正在进行"), // 抓取任务正在进行
+    FINISH("整个授权已经完成"),//整个授权已经完成
+    DONE("交互结束"); // 交互结束
 
     String msg;
 

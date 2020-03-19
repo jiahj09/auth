@@ -1,7 +1,8 @@
 package webspider.http;
 
 
-import webspider.http.cookie.CookieStore;
+
+import org.apache.http.client.CookieStore;
 
 import java.net.Proxy;
 import java.util.Map;

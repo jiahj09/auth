@@ -167,7 +167,15 @@ public class TaskUtils {
         } else {
             redisTemplate.opsForHash().put(task_id, msg_key, msg);
         }
+    }
 
+    public String getValue(String task_id, String key) {
+        Object o = redisTemplate.opsForHash().get(task_id, key);
+        if (o == null) {
+            return null;
+        } else {
+            return o.toString();
+        }
     }
 
     public Object getNeedInputField(String task_id) {

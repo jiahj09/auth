@@ -91,16 +91,22 @@ public class AuthController {
     public ResponseEntity<Response> input(@PathVariable String task_id,
                                           @RequestBody String requestBody) {
 
-        // TODO  param 校验
+        Response response;
         JSONObject paramObject = JSONObject.parseObject(requestBody);
-
-        Response response = taskService.input(task_id, paramObject);
+        String validate = paramValidate(task_id, paramObject);
+        if (validate == null || validate.equalsIgnoreCase("")) {
+            response = taskService.input(task_id, paramObject);
+        } else {
+            response = new Response(task_id, StatusEnum.ERROR, validate);
+        }
         return new ResponseEntity<>(response, HttpStatus.OK);
+
     }
 
 
     /**
      * 授权项目，是否受到支持。~~~
+     *
      * @param type
      * @return
      */
@@ -114,5 +120,19 @@ public class AuthController {
 
         if (avTypes.contains(type)) return true;
         else return false;
+    }
+
+    public String paramValidate(String task_id, JSONObject paramObject) {
+        String result = "";
+        JSONArray allNeedParam = taskService.getAllNeedParam(task_id);
+        for (int i = 0; i < allNeedParam.size(); i++) {
+            JSONObject jsonObject = allNeedParam.getJSONObject(i);
+            String key = jsonObject.getString("key");
+            String value = paramObject.getString(key);
+            if (value == null) {
+                result += key + "不能为空！\n";
+            }//TODO 按照给出的正则做出对应的校验
+        }
+        return result;
     }
 }

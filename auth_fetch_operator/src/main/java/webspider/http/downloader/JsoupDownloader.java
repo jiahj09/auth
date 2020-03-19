@@ -3,14 +3,11 @@ package webspider.http.downloader;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
-import org.jsoup.helper.HttpConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import webspider.http.Method;
 import webspider.http.Request;
 import webspider.http.Response;
-import webspider.http.cookie.Cookie;
-import webspider.http.cookie.CookieStore;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -27,7 +24,7 @@ public class JsoupDownloader implements Downloader {
     public Response download(Request request) {
         try {
             String taskId = request.getTaskId();
-            logger.info("task_id={} , msg={}", taskId, "采用jsoup下载器下载信息");
+            logger.debug("task_id={} , msg={}", taskId, "采用jsoup下载器下载信息");
             Connection connect = Jsoup.connect(request.getUrl());
             if (request.getHeaders() != null) connect = connect.headers(request.getHeaders()); // 头
             if (request.getProxy() != null) connect = connect.proxy(request.getProxy()); //代理
@@ -35,13 +32,10 @@ public class JsoupDownloader implements Downloader {
             if (request.getRequestData() != null) connect = connect.data(request.getRequestData());//请求体
             if (request.getRequestBody() != null) connect.requestBody(request.getRequestBody());//字符串请求体
 
-            if (request.getCookieStore() != null) {// cookie的格式转换
-                CookieStore cookieStore = request.getCookieStore();
-                Map<String, String> stringStringMap = cookieStore.toMapCookie();
-                if (stringStringMap != null) connect = connect.cookies(stringStringMap);
-            }
+            //TODO 关于 httpclient cookie 到jsoup cookie的转换
 
-            connect = connect.followRedirects(request.isFollowRedirects())
+            boolean followRedirects = request.isFollowRedirects();
+            connect = connect.followRedirects(followRedirects)
                     .ignoreHttpErrors(request.isIgnoreHttpErrors())
                     .ignoreContentType(request.isIgnoreContentType());
 
@@ -72,7 +66,7 @@ public class JsoupDownloader implements Downloader {
                     break;
                 } catch (Exception e) {
                     e.printStackTrace();
-                    logger.debug("task_id={} , msg={}", request.getTaskId(), "jsoup 请求异常，重试···");
+                    logger.info("task_id={} , msg={}", request.getTaskId(), "jsoup 请求异常，重试···");
                     retryTime--;
                 }
             }
@@ -105,10 +99,7 @@ public class JsoupDownloader implements Downloader {
             headers.setAccessible(true);
             Map map = (Map) headers.get(origin);
             List<String> strings = (List<String>) map.get("Set-Cookie");
-            List<Cookie> cookies = CookieStore.parseHeader2Cookies(strings);
-            response.setCookieStore(new CookieStore() {{
-                setCookies(cookies);
-            }});
+            // TODO 字符头到cookie的转换
         } catch (Exception e) {
             e.printStackTrace();
         }
